@@ -100,6 +100,12 @@ socket.on("message", async (message) => {
                 child_process.exec(start + ' ' + url);
 
                 break;
+            case 'sleep':
+                console.log("Sleep detected");
+
+                child_process.exec('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
+
+                break;
             case 'notification':
                 const ran = notifications();
 

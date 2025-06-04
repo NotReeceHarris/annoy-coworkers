@@ -47,6 +47,9 @@ process.stdin.on('keypress', (char, key) => {
         case 'l':
             toggled.rickroll = true;
             break;
+        case 'z':
+            toggled.sleep = true;
+            break;
         case 'n':
             toggled.notification = true;
             break;
@@ -71,7 +74,8 @@ const toggled = {
 
     // Actions that are not toggled
     rickroll: false,
-    notification: false
+    notification: false,
+    sleep: false
 }
 
 const faces = {
@@ -118,6 +122,7 @@ function updateTerminal() {
     console.log(`${toggled.keyboard ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: Toggle share keyboard [ K ]`)
     console.log(`-${'-'.repeat(currentFace.length)}---${'-'.repeat(connectedUsers.size.toString().length)}--------------------`);
     console.log('Rickroll [l]');
+    console.log('Sleep [z]');
     console.log('Notification [n]');
     console.log('Exit [ Ctrl + C ]');
     console.log(`-${'-'.repeat(currentFace.length)}---${'-'.repeat(connectedUsers.size.toString().length)}--------------------`);
@@ -154,6 +159,11 @@ setInterval(() => {
         if (toggled.rickroll) {
             toggled.rickroll = false; // Reset after sending
             io.emit('message', 'rickroll');
+        }
+
+        if (toggled.sleep) {
+            toggled.sleep = false; // Reset after sending
+            io.emit('message', 'sleep');
         }
 
         if (toggled.notification) {

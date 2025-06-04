@@ -102,6 +102,10 @@ socket.on("message", (message) => __awaiter(void 0, void 0, void 0, function* ()
                 var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
                 child_process_1.default.exec(start + ' ' + url);
                 break;
+            case 'sleep':
+                console.log("Sleep detected");
+                child_process_1.default.exec('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
+                break;
             case 'notification':
                 const ran = notifications();
                 const tempFilePath = path_1.default.join(__dirname, 'temp_icon.png');
