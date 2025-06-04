@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "rootDir": ".", // From your previous fix
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "client/**/*.ts",
+    "src/**/*.ts",
+    "types/**/*.d.ts" // Include your custom declarations
+  ],
+  "exclude": [
+    "node_modules",
+    "server"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "annoy-coworkers",
+  "version": "1.0.0",
+  "main": "dist/client/index.js",
+  "bin": "dist/client/index.js",
+  "scripts": {
+    "build": "tsc",
+    "package": "pkg client/index.js --targets node18-win-x64 --output dist/app.exe"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "node-notifier": "^10.0.1",
+    "robotjs": "^0.6.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/node-notifier": "^8.0.5",
+    "pkg": "^5.8.1",
+    "pkg-fetch": "^3.5.2",
+    "typescript": "^5.8.3"
+  }
+}
