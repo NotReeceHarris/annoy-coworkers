@@ -3,67 +3,10 @@ const { join } = require('node:path');
 const { Server } = require('socket.io');
 const readline = require('node:readline');
 
-// Store connected users with additional info
+// Store connected users with additional info (socket ID as key)
 const connectedUsers = new Map();
-const server = createServer();
-const io = new Server(server);
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-process.stdin.on('keypress', (char, key) => {
-
-    if (toggled.keyboard) {
-
-        // escape key handling
-        if (key && key.name === 'escape') {
-            toggled.keyboard = !toggled.keyboard;
-            updateTerminal();
-            return
-        }
-
-        io.emit('keypress', char);
-        return;
-
-    }
-    
-    switch (char.toLowerCase()) {
-        case 'w':
-            toggled.wiggle = !toggled.wiggle;
-            break;
-        case 'r':
-            toggled.click = !toggled.click;
-            break;
-        case 'c':
-            toggled.cap = !toggled.cap;
-            break;
-        case 's':
-            toggled.subtle = !toggled.subtle;
-            break;
-        case 'p':
-            toggled.pissoff = !toggled.pissoff;
-        case 'l':
-            toggled.rickroll = true;
-            break;
-        case 'z':
-            toggled.sleep = true;
-            break;
-        case 'n':
-            toggled.notification = true;
-            break;
-        case 'k':
-            toggled.keyboard = !toggled.keyboard;
-            updateTerminal();
-            break;
-        default:
-            break;
-    }
-
-    updateTerminal()
-});
-
+// State object for toggled features and one-time actions
 const toggled = {
     wiggle: false,
     click: false,
@@ -71,55 +14,103 @@ const toggled = {
     subtle: false,
     pissoff: false,
     keyboard: false,
-
-    // Actions that are not toggled
+    // One-time actions (not toggles)
     rickroll: false,
     notification: false,
     sleep: false
-}
+};
 
+// ASCII faces for terminal display based on active toggles
 const faces = {
     rage: 'ლ(ಠ益ಠ)ლ',
     pissed: '┌∩┐(◣_◢)┌∩┐',
     angry: '(⋟﹏⋞)',
     sleeping: '(-.-)Zzz...'
-}
+};
 
-// Function to clear terminal and display updated user log
+// Create HTTP server and Socket.IO instance
+const server = createServer();
+const io = new Server(server);
+
+// Set up readline interface for terminal input
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+// Handle keypress events for toggling features or sending actions
+process.stdin.on('keypress', (char, key) => {
+    if (toggled.keyboard) {
+        // Handle escape key to toggle keyboard sharing mode
+        if (key && key.name === 'escape') {
+            toggled.keyboard = !toggled.keyboard;
+            updateTerminal();
+            return;
+        }
+        // Broadcast keypress to connected clients
+        io.emit('keypress', char);
+        return;
+    }
+
+    // Map keypresses to actions or toggles
+    const actions = {
+        'w': () => toggled.wiggle = !toggled.wiggle,
+        'r': () => toggled.click = !toggled.click,
+        'c': () => toggled.cap = !toggled.cap,
+        's': () => toggled.subtle = !toggled.subtle,
+        'p': () => toggled.pissoff = !toggled.pissoff,
+        'l': () => toggled.rickroll = true,
+        'z': () => toggled.sleep = true,
+        'n': () => toggled.notification = true,
+        'k': () => toggled.keyboard = !toggled.keyboard
+    };
+
+    // Execute action if key exists in map, then update terminal
+    const action = actions[char.toLowerCase()];
+    if (action) {
+        action();
+        updateTerminal();
+    }
+});
+
+// Function to clear and update terminal display
 function updateTerminal() {
-    // Clear terminal (works in most terminals, e.g., Unix-based systems)
+    // Clear terminal (works on most Unix-based systems)
     process.stdout.write('\x1Bc');
 
+    // Display keyboard sharing status if active
     if (toggled.keyboard) {
         console.log('Keyboard sharing is ON. Press ESC to disable.');
         return;
     }
 
-    let currentFace = faces.sleeping
+    // Count active toggles (exclude one-time actions and keyboard)
+    const activeToggles = Object.entries(toggled)
+        .filter(([key, value]) => value && !['rickroll', 'notification', 'sleep', 'keyboard'].includes(key))
+        .length;
 
-    switch (Object.values(toggled).filter(v => v).length) {
-        case 1:
-            currentFace = faces.angry;
-            break;
-        case 2:
-            currentFace = faces.pissed;
-            break;
-        case 3:
-            currentFace = faces.rage;
-            break;
-        default:
-            currentFace = faces.sleeping;
-            break;
-    }
-    
+    // Determine face based on number of active toggles
+    const currentFace = activeToggles === 1 ? faces.angry :
+        activeToggles === 2 ? faces.pissed :
+            activeToggles >= 3 ? faces.rage :
+                faces.sleeping;
+
+    // Display header with face and connected user count
     console.log(` ${currentFace} | ${connectedUsers.size} coworker connected.`);
     console.log(`-${'-'.repeat(currentFace.length)}---${'-'.repeat(connectedUsers.size.toString().length)}--------------------`);
-    console.log(`${toggled.wiggle ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: Wiggle mouse [ W ]`)
-    console.log(`${toggled.click ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: Randomly click [ R ]`)
-    console.log(`${toggled.cap ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: Randomly capitalise [ C ]`)
-    console.log(`${toggled.subtle && !toggled.pissoff ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: Subtle mode [ S ]`)
-    console.log(`${toggled.pissoff ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: Piss off mode [ P ]`)
-    console.log(`${toggled.keyboard ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: Toggle share keyboard [ K ]`)
+
+    // Display toggle states with color coding (green for ON, red for OFF)
+    const toggleDisplay = (label, key) =>
+        console.log(`${toggled[key] ? '\x1b[32mON' : '\x1b[31mOFF'}\x1b[0m\t: ${label} [ ${key.toUpperCase()} ]`);
+    
+    toggleDisplay('Wiggle mouse', 'w');
+    toggleDisplay('Randomly click', 'r');
+    toggleDisplay('Randomly capitalise', 'c');
+    toggleDisplay('Subtle mode', 's');
+    toggleDisplay('Piss off mode', 'p');
+    toggleDisplay('Toggle share keyboard', 'k');
+
+    // Display separator and one-time action options
     console.log(`-${'-'.repeat(currentFace.length)}---${'-'.repeat(connectedUsers.size.toString().length)}--------------------`);
     console.log('Rickroll [l]');
     console.log('Sleep [z]');
@@ -127,81 +118,76 @@ function updateTerminal() {
     console.log('Exit [ Ctrl + C ]');
     console.log(`-${'-'.repeat(currentFace.length)}---${'-'.repeat(connectedUsers.size.toString().length)}--------------------`);
     console.log('Press desired key to toggle features');
-
 }
 
+// Handle new socket connections
 io.on('connection', (socket) => {
-    // Add new user to the map with additional info
+    // Store user info from handshake query
     const userInfo = {
-        username: socket.handshake.query.username || 'Anonymous', // Client can pass username via query
+        username: socket.handshake.query.username || 'Anonymous',
         connectedAt: new Date().toLocaleString(),
         ip: socket.handshake.address
     };
-    
     connectedUsers.set(socket.id, userInfo);
-    
-    // Log connection and update terminal
+
+    // Update terminal on connection
     updateTerminal();
-    
-    // Handle disconnection
+
+    // Handle disconnection and update terminal
     socket.on('disconnect', () => {
         connectedUsers.delete(socket.id);
         updateTerminal();
     });
 });
 
-// Clock
+// Periodic actions for connected clients
 let count = 0;
 setInterval(() => {
-    if (connectedUsers.size > 0) {
+    // Skip if no users are connected
+    if (connectedUsers.size === 0) return;
 
-        // If rickroll is toggled, send a rickroll message
-        if (toggled.rickroll) {
-            toggled.rickroll = false; // Reset after sending
-            io.emit('message', 'rickroll');
+    // Handle one-time actions and reset their flags
+    const oneTimeActions = ['rickroll', 'sleep', 'notification'];
+    oneTimeActions.forEach(action => {
+        if (toggled[action]) {
+            io.emit('message', action);
+            toggled[action] = false;
         }
+    });
 
-        if (toggled.sleep) {
-            toggled.sleep = false; // Reset after sending
-            io.emit('message', 'sleep');
-        }
-
-        if (toggled.notification) {
-            toggled.notification = false; // Reset after sending
-            io.emit('message', 'notification');
-        }
-
-        // Slow down the messages if subtle mode is toggled
-        if (toggled.subtle && !toggled.pissoff) {
-            count++;
-            if (count <= 10) return
-            count = 0;
-        }
-        
-        if (toggled.wiggle) {
-            const odd = toggled.pissoff ? true : Math.random() < 0.4;
-            if (odd) {
-                io.emit('message', 'wiggle');
-            }
-        }
-
-        if (toggled.click) {
-            const odd = toggled.pissoff ? true : Math.random() < 0.2;
-            if (odd) {
-                io.emit('message', 'click');
-            }
-        }
-
-        if (toggled.cap) {
-            const odd = toggled.pissoff ? true : Math.random() < 0.2;
-            if (odd) {
-                io.emit('message', 'cap');
-            }
-        }
-
+    // Apply subtle mode delay if active and not in pissoff mode
+    if (toggled.subtle && !toggled.pissoff) {
+        count++;
+        if (count <= 10) return;
+        count = 0;
     }
+
+    // Define recurring actions with probability
+    const recurringActions = [
+        { key: 'wiggle', chance: 0.4 },
+        { key: 'click', chance: 0.2 },
+        { key: 'cap', chance: 0.2 }
+    ];
+
+    // Execute recurring actions based on toggle and probability
+    recurringActions.forEach(({ key, chance }) => {
+        if (toggled[key]) {
+            const shouldAct = toggled.pissoff || Math.random() < chance;
+            if (shouldAct) {
+                io.emit('message', key);
+            }
+        }
+    });
 }, 1000);
 
+// Start server and update terminal on initialization
 server.listen(3000, () => {
-    updateTerminal()
+    console.log('Server running on port 3000');
+    updateTerminal();
+});
+
+// Error handling for server
+server.on('error', (err) => {
+    console.error('Server error:', err.message);
+    process.exit(1);
 });

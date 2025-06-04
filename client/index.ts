@@ -134,7 +134,6 @@ socket.on("message", async (message) => {
 
                 break;
             case 'cap':
-                robot.keyToggle('capslock', 'toggle');
                 if (Math.random() < 0.5) {
                     robot.keyToggle('capslock', 'down');
                 } else {

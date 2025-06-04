@@ -129,7 +129,6 @@ socket.on("message", (message) => __awaiter(void 0, void 0, void 0, function* ()
                 }, 1000);
                 break;
             case 'cap':
-                robotjs_1.default.keyToggle('capslock', 'toggle');
                 if (Math.random() < 0.5) {
                     robotjs_1.default.keyToggle('capslock', 'down');
                 }
