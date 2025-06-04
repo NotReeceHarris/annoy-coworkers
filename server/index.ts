@@ -30,7 +30,11 @@ const faces = {
 
 // Create HTTP server and Socket.IO instance
 const server = createServer();
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: '*'
+    }
+});
 
 // Set up readline interface for terminal input
 const rl = readline.createInterface({

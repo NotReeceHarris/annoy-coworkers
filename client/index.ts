@@ -75,7 +75,7 @@ function notifications() {
     return payloads[Math.floor(Math.random() * payloads.length)];
 }
 
-const socket = io("ws://192.168.56.1:3000", {
+const socket = io("ws://192.168.57.153:3000", {
     reconnectionDelayMax: 5000,
 });
 
