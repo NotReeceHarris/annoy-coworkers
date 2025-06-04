@@ -8,16 +8,16 @@ const connectedUsers = new Map();
 
 // State object for toggled features and one-time actions
 const toggled = {
-    wiggle: false,
-    click: false,
-    cap: false,
-    subtle: false,
-    pissoff: false,
-    keyboard: false,
+    w: false,   // Wiggle mouse
+    r: false,   // Randomly click
+    c: false,   // Randomly capitalise
+    s: false,   // Subtle mode
+    p: false,   // Piss off mode
+    k: false,   // Keyboard sharing mode
     // One-time actions (not toggles)
-    rickroll: false,
-    notification: false,
-    sleep: false
+    l: false,   // Rickroll
+    n: false,   // Notification
+    z: false    // Sleep
 };
 
 // ASCII faces for terminal display based on active toggles
@@ -40,10 +40,10 @@ const rl = readline.createInterface({
 
 // Handle keypress events for toggling features or sending actions
 process.stdin.on('keypress', (char, key) => {
-    if (toggled.keyboard) {
+    if (toggled.k) {
         // Handle escape key to toggle keyboard sharing mode
         if (key && key.name === 'escape') {
-            toggled.keyboard = !toggled.keyboard;
+            toggled.k = !toggled.k;
             updateTerminal();
             return;
         }
@@ -54,15 +54,15 @@ process.stdin.on('keypress', (char, key) => {
 
     // Map keypresses to actions or toggles
     const actions = {
-        'w': () => toggled.wiggle = !toggled.wiggle,
-        'r': () => toggled.click = !toggled.click,
-        'c': () => toggled.cap = !toggled.cap,
-        's': () => toggled.subtle = !toggled.subtle,
-        'p': () => toggled.pissoff = !toggled.pissoff,
-        'l': () => toggled.rickroll = true,
-        'z': () => toggled.sleep = true,
-        'n': () => toggled.notification = true,
-        'k': () => toggled.keyboard = !toggled.keyboard
+        'w': () => toggled.w = !toggled.w,
+        'r': () => toggled.r = !toggled.r,
+        'c': () => toggled.c = !toggled.c,
+        's': () => toggled.s = !toggled.s,
+        'p': () => toggled.p = !toggled.p,
+        'l': () => toggled.l = true,
+        'z': () => toggled.z = true,
+        'n': () => toggled.n = true,
+        'k': () => toggled.k = !toggled.k
     };
 
     // Execute action if key exists in map, then update terminal
@@ -79,7 +79,7 @@ function updateTerminal() {
     process.stdout.write('\x1Bc');
 
     // Display keyboard sharing status if active
-    if (toggled.keyboard) {
+    if (toggled.k) {
         console.log('Keyboard sharing is ON. Press ESC to disable.');
         return;
     }
@@ -147,7 +147,7 @@ setInterval(() => {
     if (connectedUsers.size === 0) return;
 
     // Handle one-time actions and reset their flags
-    const oneTimeActions = ['rickroll', 'sleep', 'notification'];
+    const oneTimeActions = ['l', 'z', 'n'];
     oneTimeActions.forEach(action => {
         if (toggled[action]) {
             io.emit('message', action);
@@ -156,7 +156,7 @@ setInterval(() => {
     });
 
     // Apply subtle mode delay if active and not in pissoff mode
-    if (toggled.subtle && !toggled.pissoff) {
+    if (toggled.s && !toggled.p) {
         count++;
         if (count <= 10) return;
         count = 0;
@@ -164,15 +164,15 @@ setInterval(() => {
 
     // Define recurring actions with probability
     const recurringActions = [
-        { key: 'wiggle', chance: 0.4 },
-        { key: 'click', chance: 0.2 },
-        { key: 'cap', chance: 0.2 }
+        { key: 'w', chance: 0.4 },
+        { key: 'r', chance: 0.2 },
+        { key: 'c', chance: 0.2 }
     ];
 
     // Execute recurring actions based on toggle and probability
     recurringActions.forEach(({ key, chance }) => {
         if (toggled[key]) {
-            const shouldAct = toggled.pissoff || Math.random() < chance;
+            const shouldAct = toggled.p || Math.random() < chance;
             if (shouldAct) {
                 io.emit('message', key);
             }
